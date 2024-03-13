@@ -1,3 +1,5 @@
+#![feature(iterator_try_collect)]
+
 // try_from_into.rs
 //
 // TryFrom is a simple and safe type conversion that may fail in a controlled
@@ -27,8 +29,6 @@ enum IntoColorError {
     IntConversion,
 }
 
-// I AM NOT DONE
-
 // Your task is to complete this implementation and return an Ok result of inner
 // type Color. You need to create an implementation for a tuple of three
 // integers, an array of three integers, and a slice of integers.
@@ -40,7 +40,18 @@ enum IntoColorError {
 // Tuple implementation
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
-    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+    fn try_from((r, g, b): (i16, i16, i16)) -> Result<Self, Self::Error> {
+        match vec![u8::try_from(r), u8::try_from(g), u8::try_from(b)]
+            .into_iter()
+            .try_collect::<Vec<_>>()
+        {
+            Ok(vec) => Ok(Color {
+                red: vec[0],
+                green: vec[1],
+                blue: vec[2],
+            }),
+            Err(_) => Err(IntoColorError::IntConversion),
+        }
     }
 }
 
@@ -48,6 +59,18 @@ impl TryFrom<(i16, i16, i16)> for Color {
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        match arr
+            .into_iter()
+            .map(|val| u8::try_from(val))
+            .try_collect::<Vec<_>>()
+        {
+            Ok(vec) => Ok(Color {
+                red: vec[0],
+                green: vec[1],
+                blue: vec[2],
+            }),
+            Err(_) => Err(IntoColorError::IntConversion),
+        }
     }
 }
 
@@ -55,6 +78,21 @@ impl TryFrom<[i16; 3]> for Color {
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if slice.len() != 3 {
+            return Err(IntoColorError::BadLen);
+        };
+        match slice
+            .iter()
+            .map(|val| u8::try_from(*val))
+            .try_collect::<Vec<_>>()
+        {
+            Ok(vec) => Ok(Color {
+                red: vec[0],
+                green: vec[1],
+                blue: vec[2],
+            }),
+            Err(_) => Err(IntoColorError::IntConversion),
+        }
     }
 }
 
