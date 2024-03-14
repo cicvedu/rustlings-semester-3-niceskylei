@@ -8,7 +8,7 @@
 // Execute `rustlings hint lifetimes1` or use the `hint` watch subcommand for a
 // hint.
 
-fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+fn longest<'a: 'c, 'b: 'c>(x: &'a str, y: &'b str) -> &'c str {
     if x.len() > y.len() {
         x
     } else {

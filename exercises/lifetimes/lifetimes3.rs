@@ -5,9 +5,9 @@
 // Execute `rustlings hint lifetimes3` or use the `hint` watch subcommand for a
 // hint.
 
-struct Book<'a> {
+struct Book<'a, 'b> {
     author: &'a str,
-    title: &'a str,
+    title: &'b str,
 }
 
 fn main() {
