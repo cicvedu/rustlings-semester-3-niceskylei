@@ -1,6 +1,3 @@
-#![feature(result_flattening)]
-#![feature(iterator_try_collect)]
-
 // iterators3.rs
 //
 // This is a bigger exercise than most of the others! You can do it! Here is
@@ -29,9 +26,8 @@ pub struct NotDivisibleError {
 // Calculate `a` divided by `b` if `a` is evenly divisible by `b`.
 // Otherwise, return a suitable error.
 pub fn divide(a: i32, b: i32) -> Result<i32, DivisionError> {
-    a.checked_div(b)
-        .ok_or(DivisionError::DivideByZero)
-        .map(|c| {
+    match a.checked_div(b) {
+        Some(c) => {
             if c * b != a {
                 Err(DivisionError::NotDivisible(NotDivisibleError {
                     dividend: a,
@@ -40,8 +36,9 @@ pub fn divide(a: i32, b: i32) -> Result<i32, DivisionError> {
             } else {
                 Ok(c)
             }
-        })
-        .flatten()
+        }
+        None => Err(DivisionError::DivideByZero),
+    }
 }
 
 // Complete the function and return a value of the correct type so the test
@@ -49,8 +46,15 @@ pub fn divide(a: i32, b: i32) -> Result<i32, DivisionError> {
 // Desired output: Ok([1, 11, 1426, 3])
 fn result_with_list() -> Result<Vec<i32>, DivisionError> {
     let numbers = vec![27, 297, 38502, 81];
-    let mut division_results = numbers.into_iter().map(|n| divide(n, 27));
-    division_results.try_collect()
+    let division_results = numbers.into_iter().map(|n| divide(n, 27));
+    let mut out = vec![];
+    for res in division_results {
+        match res {
+            Ok(val) => out.push(val),
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(out)
 }
 
 // Complete the function and return a value of the correct type so the test
